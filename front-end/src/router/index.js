@@ -17,7 +17,12 @@ const routes = [
     path: "/sign-up",
     name: "signUp",
     component: SignUp
-  }
+  },
+  // {
+  //   path: "/detail-product",
+  //   name: "detailProduct",
+  //   component: DeTailProduct
+  // }
 ];
 
 const router = createRouter({
