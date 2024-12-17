@@ -1,0 +1,10 @@
+go get -u github.com/gin-gonic/gin
+go get -u github.com/go-sql-driver/mysql
+go get github.com/joho/godotenv
+go install github.com/cosmtrek/air@latest 
+go get gopkg.in/gomail.v2
+go get github.com/dgrijalva/jwt-go
+---------------
+Để chạy project nhập: air
+---------------
+go clean -modcache
