@@ -21,5 +21,7 @@ func SetupRouter(db *models.DB) *gin.Engine {
 	// Gọi các route cho đánh giá review
 	ReviewRoutes(r, db)
 
+	// Gọi các route cho cart
+	CartRoutes(r, db)
 	return r
 }
