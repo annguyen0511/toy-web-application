@@ -18,17 +18,8 @@ func SetupRouter(db *models.DB) *gin.Engine {
 	// Gọi các route cho sản phẩm
 	ProductRoutes(r, db)
 
-	// Gọi các route cho đánh giá
+	// Gọi các route cho đánh giá review
 	ReviewRoutes(r, db)
-
-	// Gọi các route cho giỏ hàng
-	CartRoutes(r, db)
-
-	// Gọi các route cho đơn hàng
-	OrderRoutes(r, db)
-
-	// Gọi các route cho thanh toán
-	PaymentRoutes(r, db)
 
 	return r
 }
