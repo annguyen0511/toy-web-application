@@ -12,7 +12,7 @@ A modern web app for showcasing and selling toys, built with Vue.js and Golang.
 ## Technologies Used  
 - **Frontend:** Vue.js, Tailwind CSS  
 - **Backend:** Golang, Gin Framework  
-- **Database:** PostgreSQL  
+- **Database:** MySQL  
 
 
 ## Installation  
