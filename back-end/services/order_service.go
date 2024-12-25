@@ -52,3 +52,8 @@ func (s *OrderService) GetOrderDetailsByOrderID(orderID int) ([]models.OrderDeta
 func (s *OrderService) GetAllOrderDetails() ([]models.OrderDetail, error) {
 	return s.OrderRepo.GetAllOrderDetails()
 }
+
+// Cập nhật trạng thái đơn hàng
+func (s *OrderService) UpdateOrderStatus(orderID int, status string) error {
+	return s.OrderRepo.UpdateOrderStatus(orderID, status)
+}

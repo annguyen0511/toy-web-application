@@ -16,8 +16,8 @@ func NewOrderRepository(db *sql.DB) *OrderRepository {
 
 // Thêm đơn hàng
 func (r *OrderRepository) AddOrder(order models.Order) error {
-	_, err := r.db.Exec("INSERT INTO Orders (UserID, TotalPrice, CreatedAt) VALUES (?, ?, ?)",
-		order.UserID, order.TotalPrice, order.CreatedAt)
+	_, err := r.db.Exec("INSERT INTO Orders (UserID, TotalAmount, CreatedAt) VALUES (?, ?, ?)",
+		order.UserID, order.TotalAmount, order.CreatedAt)
 	return err
 }
 
@@ -43,7 +43,7 @@ func (r *OrderRepository) DeleteOrderDetail(orderDetailID int) error {
 
 // Lấy tất cả đơn hàng theo UserID
 func (r *OrderRepository) GetOrdersByUserID(userID int) ([]models.Order, error) {
-	rows, err := r.db.Query("SELECT OrderID, UserID, TotalPrice, CreatedAt FROM Orders WHERE UserID = ?", userID)
+	rows, err := r.db.Query("SELECT OrderID, UserID, OrderDate, TotalAmount, OrderStatus, ShippingAddress, CreatedAt FROM Orders WHERE UserID = ?", userID)
 	if err != nil {
 		return nil, err
 	}
@@ -52,7 +52,21 @@ func (r *OrderRepository) GetOrdersByUserID(userID int) ([]models.Order, error) 
 	var orders []models.Order
 	for rows.Next() {
 		var order models.Order
-		if err := rows.Scan(&order.OrderID, &order.UserID, &order.TotalPrice, &order.CreatedAt); err != nil {
+		var orderDate, createdAt string // Temporary variables to hold the OrderDate and CreatedAt values
+		if err := rows.Scan(&order.OrderID, &order.UserID, &orderDate, &order.TotalAmount, &order.OrderStatus, &order.ShippingAddress, &createdAt); err != nil {
+			return nil, err
+		}
+		// Convert orderDate and createdAt strings to time.Time
+		if parsedOrderDate, err := time.Parse("2006-01-02 15:04:05", orderDate); err == nil {
+			order.OrderDate = parsedOrderDate
+		} else {
+			println("Error parsing OrderDate:", err.Error()) // Print error
+			return nil, err
+		}
+		if parsedCreatedAt, err := time.Parse("2006-01-02 15:04:05", createdAt); err == nil {
+			order.CreatedAt = parsedCreatedAt
+		} else {
+			println("Error parsing CreatedAt:", err.Error()) // Print error
 			return nil, err
 		}
 		orders = append(orders, order)
@@ -62,8 +76,10 @@ func (r *OrderRepository) GetOrdersByUserID(userID int) ([]models.Order, error) 
 
 // Lấy tất cả đơn hàng
 func (r *OrderRepository) GetAllOrders() ([]models.Order, error) {
-	rows, err := r.db.Query("SELECT OrderID, UserID, TotalPrice, CreatedAt FROM Orders")
+	println("đã vô") // Print "đã vô" at the start
+	rows, err := r.db.Query("SELECT OrderID, UserID, OrderDate, TotalAmount, OrderStatus, ShippingAddress, CreatedAt FROM orders")
 	if err != nil {
+		println("Error executing query:", err.Error()) // Print error
 		return nil, err
 	}
 	defer rows.Close()
@@ -71,13 +87,20 @@ func (r *OrderRepository) GetAllOrders() ([]models.Order, error) {
 	var orders []models.Order
 	for rows.Next() {
 		var order models.Order
-		var createdAt string // Temporary variable to hold the CreatedAt value
-		if err := rows.Scan(&order.OrderID, &order.UserID, &order.TotalPrice, &createdAt); err != nil {
+		var orderDate, createdAt string // Temporary variables to hold the OrderDate and CreatedAt values
+		if err := rows.Scan(&order.OrderID, &order.UserID, &orderDate, &order.TotalAmount, &order.OrderStatus, &order.ShippingAddress, &createdAt); err != nil {
+			println("Error scanning row:", err.Error()) // Print error
 			return nil, err
 		}
-		// Convert createdAt string to time.Time
-		if parsedTime, err := time.Parse("2006-01-02 15:04:05", createdAt); err == nil {
-			order.CreatedAt = parsedTime
+		// Convert orderDate and createdAt strings to time.Time
+		if parsedOrderDate, err := time.Parse("2006-01-02 15:04:05", orderDate); err == nil {
+			order.OrderDate = parsedOrderDate
+		} else {
+			println("Error parsing OrderDate:", err.Error()) // Print error
+			return nil, err
+		}
+		if parsedCreatedAt, err := time.Parse("2006-01-02 15:04:05", createdAt); err == nil {
+			order.CreatedAt = parsedCreatedAt
 		} else {
 			println("Error parsing CreatedAt:", err.Error()) // Print error
 			return nil, err
@@ -123,4 +146,10 @@ func (r *OrderRepository) GetAllOrderDetails() ([]models.OrderDetail, error) {
 		orderDetails = append(orderDetails, orderDetail)
 	}
 	return orderDetails, nil
+}
+
+// Cập nhật trạng thái đơn hàng
+func (r *OrderRepository) UpdateOrderStatus(orderID int, status string) error {
+	_, err := r.db.Exec("UPDATE Orders SET OrderStatus = ? WHERE OrderID = ?", status, orderID)
+	return err
 }

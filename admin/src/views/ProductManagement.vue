@@ -27,7 +27,7 @@
             title="Bạn có chắc chắn muốn xóa sản phẩm này không?"
             ok-text="Có"
             cancel-text="Không"
-            @confirm="handleDelete(record.id)"
+            @confirm="handleDelete(record.product_id)"
           >
             <a>Xóa</a>
           </a-popconfirm>
@@ -85,9 +85,8 @@
 </template>
 
 <script>
-import { getAllProducts, createProduct, updateProduct, deleteProduct, searchProducts } from '@/apis/productApi';
+import { getAllProducts, createProduct, updateProduct, deleteProduct, searchProducts, updateOrderStatusByOrderId } from '@/apis/productApi';
 import { getAllCategories } from '@/apis/categoriesApi';
-import { uploadImage } from '@/apis/uploadApi';
 import { message } from 'ant-design-vue';
 import _ from 'lodash';
 
@@ -160,26 +159,28 @@ export default {
   },
   methods: {
     async fetchProducts() {
-      try {
-        const data = await getAllProducts();
-        console.log(data);
-        this.products = data.map(product => {
-          const category = JSON.parse(JSON.stringify(this.categories.find(cat => Number(cat.category_id) === Number(product.category_id))));
-          console.log(category);
-          return {
-            ...product,
-            category_name: category ? category.category_name : 'Không xác định',
-          };
-        });
-      } catch (error) {
-        message.error(error.message || 'Có lỗi xảy ra khi tải sản phẩm!');
-      }
-    },
+     try {
+       const data = await getAllProducts();
+       console.log(data); // Log the data to check its structure
+       await this.fetchCategories(); // Ensure categories are fetched before processing products
+       this.products = data.map(product => {
+         const category = this.categories.find(cat => Number(cat.category_id) === Number(product.category_id));
+         return {
+           ...product,
+           category_name: category ? category.category_name : 'Không xác định',
+         };
+       });
+     } catch (error) {
+       console.log(error);
+       message.error(error.message || 'Có lỗi xảy ra khi tải sản phẩm!');
+     }
+   },
     async fetchCategories() {
       try {
         const data = await getAllCategories();
         this.categories = data;
       } catch (error) {
+        console.log(error);
         message.error(error.message || 'Có lỗi xảy ra khi tải danh mục!');
       }
     },
@@ -226,7 +227,7 @@ export default {
           ]);
 
           if (this.isEditing) {
-            await updateProduct(this.formData.id, payload);
+            await updateProduct(this.formData.product_id, { ...payload, product_id: this.formData.product_id });
             message.success('Cập nhật sản phẩm thành công!');
           } else {
             await createProduct(payload);
@@ -255,10 +256,21 @@ export default {
     },
     async handleCustomRequest({ file, onSuccess, onError }) {
       try {
-        const response = await uploadImage(file);
-        this.formData.image_url = response.data.url;
-        onSuccess(response, file);
-        message.success(`${file.name} file uploaded successfully`);
+        const formData = new FormData();
+        formData.append('image', file);
+        const response = await fetch(`https://api.imgbb.com/1/upload?key=e64a49ca517de7491f78d8edf586515a`, {
+          method: 'POST',
+          body: formData,
+        });
+        const data = await response.json();
+        
+        if (data.success) {
+          this.formData.image_url = data.data.url;
+          onSuccess(data, file);
+          message.success(`${file.name} file uploaded successfully`);
+        } else {
+          throw new Error('Upload failed');
+        }
       } catch (error) {
         onError(error);
         message.error(`${file.name} file upload failed.`);
@@ -266,6 +278,18 @@ export default {
     },
     formatCurrency(value) {
       return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(value);
+    },
+    async updateOrderStatus(orderId, status) {
+      try {
+        await updateOrderStatusByOrderId(orderId, { status });
+        message.success('Cập nhật trạng thái đơn hàng thành công!');
+      } catch (error) {
+        message.error(error.message || 'Có lỗi xảy ra khi cập nhật trạng thái đơn hàng!');
+      }
+    },
+    async handleUpdateOrderStatus(orderId) {
+      const newStatus = 'Shipped';
+      await this.updateOrderStatus(orderId, newStatus);
     },
   },
 };

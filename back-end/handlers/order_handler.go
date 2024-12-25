@@ -125,3 +125,25 @@ func (h *OrderHandler) GetAllOrderDetails(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, orderDetails)
 }
+
+// Cập nhật trạng thái đơn hàng
+func (h *OrderHandler) UpdateOrderStatus(c *gin.Context) {
+	orderID := c.Param("order_id") // Lấy order_id từ URL
+	var input struct {
+		Status string `json:"status"` // Trạng thái mới
+	}
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
+		return
+	}
+	orderIDInt, err := strconv.Atoi(orderID) // Chuyển đổi từ string sang int
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid order ID"})
+		return
+	}
+	if err := h.OrderService.UpdateOrderStatus(orderIDInt, input.Status); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Unable to update order status"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "Order status updated successfully"})
+}

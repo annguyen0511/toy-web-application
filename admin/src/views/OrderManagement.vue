@@ -16,18 +16,18 @@
       :columns="columns"
       :dataSource="orders"
       :pagination="{ pageSize: 10 }"
-      rowKey="id"
+      rowKey="order_id"
     >
       <template #bodyCell="{ column, record }">
-        <span v-if="column.key === 'actions' && record.status !== 'Đã hủy'">
+        <span v-if="column.key === 'actions' && record.order_status !== 'Đã hủy'">
           <a @click="showEditModal(record)" style="margin-right: 8px;">Cập nhật trạng thái</a>
           <a @click="showViewModal(record)" style="margin-right: 8px;">Xem chi tiết</a>
         </span>
         <span v-else-if="column.key === 'order_date'">
           {{ formatDate(record.order_date) }}
         </span>
-        <span v-else-if="column.key === 'total_price'">
-          {{ formatCurrency(record.total_price) }}
+        <span v-else-if="column.key === 'total_amount'">
+          {{ formatCurrency(record.total_amount) }}
         </span>
         <span v-else>{{ record[column.dataIndex] || '-' }}</span>
       </template>
@@ -40,8 +40,8 @@
       width="600px"
     >
       <a-form :model="formData" ref="orderForm" layout="vertical">
-        <a-form-item label="Trạng thái" name="status" style="margin-bottom: 10px;">
-          <a-select v-model:value="formData.status" placeholder="Chọn trạng thái">
+        <a-form-item label="Trạng thái" name="order_status" style="margin-bottom: 10px;">
+          <a-select v-model:value="formData.order_status" placeholder="Chọn trạng thái">
             <a-select-option value="Từ chối">Từ chối</a-select-option>
             <a-select-option value="Vận chuyển">Vận chuyển</a-select-option>
             <a-select-option value="Phê duyệt">Phê duyệt</a-select-option>
@@ -57,18 +57,10 @@
       width="800px"
     >
       <div v-if="selectedOrderBooks.length">
-        <div v-for="book in selectedOrderBooks" :key="book.id" class="book-detail">
-          <img :src="book.image" alt="Book cover" class="book-image" style="width: 250px; height: auto; border-radius: 8px;" />
-          <div class="book-info">
-            <h3>{{ book.title }}</h3>
-            <p>Tác giả: {{ book.author }}</p>
-            <p>Thể loại: {{ book.genre }}</p>
-            <p>Giá: {{ formatCurrency(book.price) }}</p>
-            <p>Số lượng: {{ book.quantity }}</p>
-            <p>Nhà xuất bản: {{ book.publisher }}</p>
-            <p>Năm xuất bản: {{ book.publicationYear }}</p>
-            <p>Mô tả: {{ book.description }}</p>
-          </div>
+        <div v-for="book in selectedOrderBooks" :key="book.order_detail_id" class="book-detail">
+          <p>Sản phẩm ID: {{ book.product_id }}</p>
+          <p>Số lượng: {{ book.quantity }}</p>
+          <p>Giá: {{ formatCurrency(book.price) }}</p>
         </div>
       </div>
       <div v-else>
@@ -79,7 +71,7 @@
 </template>
 
 <script>
-import { getAllOrders, updateOrderStatus, searchOrders } from '@/apis/ordersApi';
+import { getAllOrders, updateOrderStatus, getOrderDetailsByOrderId } from '@/apis/ordersApi';
 import { message } from 'ant-design-vue';
 import moment from 'moment';
 
@@ -89,6 +81,11 @@ export default {
     return {
       orders: [],
       columns: [
+        {
+          title: 'Mã đơn hàng',
+          dataIndex: 'order_id',
+          key: 'order_id',
+        },
         {
           title: 'Mã người dùng',
           dataIndex: 'user_id',
@@ -100,19 +97,14 @@ export default {
           key: 'order_date',
         },
         {
-          title: 'Số lượng',
-          dataIndex: 'quantity',
-          key: 'quantity',
-        },
-        {
           title: 'Tổng giá',
-          dataIndex: 'total_price',
-          key: 'total_price',
+          dataIndex: 'total_amount',
+          key: 'total_amount',
         },
         {
           title: 'Trạng thái',
-          dataIndex: 'status',
-          key: 'status',
+          dataIndex: 'order_status',
+          key: 'order_status',
         },
         {
           title: 'Hành động',
@@ -122,8 +114,8 @@ export default {
       isModalVisible: false,
       isViewModalVisible: false,
       formData: {
-        id: null,
-        status: '',
+        order_id: null,
+        order_status: '',
       },
       selectedOrderBooks: [],
     };
@@ -141,20 +133,22 @@ export default {
       }
     },
     async handleSearch(query) {
-      try {
-        const data = await searchOrders(query);
-        this.orders = data;
-      } catch (error) {
-        message.error(error.message || 'Có lỗi xảy ra khi tìm kiếm đơn hàng!');
+      if (!query) {
+        this.fetchOrders();
+        return;
       }
+      this.orders = this.orders.filter(order => 
+        String(order.order_id).includes(query) || 
+        String(order.user_id).includes(query)
+      );
     },
     showEditModal(record) {
-      this.formData = { id: record.id, status: record.status };
+      this.formData = { order_id: record.order_id, order_status: record.order_status };
       this.isModalVisible = true;
     },
     async handleOk() {
       try {
-        await updateOrderStatus(this.formData.id, this.formData.status);
+        await updateOrderStatus(this.formData.order_id, this.formData.order_status);
         message.success('Cập nhật trạng thái đơn hàng thành công!');
         this.isModalVisible = false;
         this.fetchOrders();
@@ -168,6 +162,15 @@ export default {
     showViewModal(record) {
       this.selectedOrderBooks = record.books || [];
       this.isViewModalVisible = true;
+      this.fetchOrderDetails(record.order_id);
+    },
+    async fetchOrderDetails(orderId) {
+      try {
+        const data = await getOrderDetailsByOrderId(orderId);
+        this.selectedOrderBooks = data || [];
+      } catch (error) {
+        message.error(error.message || 'Có lỗi xảy ra khi tải chi tiết đơn hàng!');
+      }
     },
     handleViewCancel() {
       this.isViewModalVisible = false;
