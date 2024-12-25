@@ -32,7 +32,7 @@
             <a>Xóa</a>
           </a-popconfirm>
         </span>
-        <img v-else-if="column.key === 'image'" :src="record.image || placeholderImage" alt="Image" style="width: 50px; height: 50px;" />
+        <img v-else-if="column.key === 'image_url'" :src="record.image_url || placeholderImage" alt="Image" style="width: 50px; height: 50px;" />
         <span v-else-if="column.key === 'price'">
           {{ formatCurrency(record.price) }}
         </span>
@@ -46,25 +46,26 @@
       @cancel="handleCancel"
     >
       <a-form :model="formData" :rules="rules" ref="productForm" layout="vertical">
-        <a-form-item label="Tiêu đề" name="title" style="margin-bottom: 10px;">
-          <a-input v-model:value="formData.title" />
+        <a-form-item label="Tên sản phẩm" name="product_name" style="margin-bottom: 10px;">
+          <a-input v-model:value="formData.product_name" />
         </a-form-item>
-        <a-form-item label="Tác giả" name="author" style="margin-bottom: 10px;">
-          <a-input v-model:value="formData.author" />
+        <a-form-item label="Mô tả" name="description" style="margin-bottom: 10px;">
+          <a-textarea v-model:value="formData.description" />
         </a-form-item>
-        <a-form-item label="Nhà xuất bản" name="publisher" style="margin-bottom: 10px;">
-          <a-input v-model:value="formData.publisher" />
+        <a-form-item label="Giá" name="price" style="margin-bottom: 10px;">
+          <a-input-number v-model:value="formData.price" style="width: 100%;" />
         </a-form-item>
-        <a-form-item label="Năm xuất bản" name="publicationYear" style="margin-bottom: 10px;">
-          <a-input-number v-model:value="formData.publicationYear" style="width: 100%;" />
+        <a-form-item label="Số lượng tồn kho" name="stock" style="margin-bottom: 10px;">
+          <a-input-number v-model:value="formData.stock" style="width: 100%;" />
         </a-form-item>
-        <a-form-item label="Thể loại" name="genre" style="margin-bottom: 10px;">
-          <a-input v-model:value="formData.genre" />
+        <a-form-item label="Danh mục" name="category_id" style="margin-bottom: 10px;">
+          <a-select v-model:value="formData.category_id" placeholder="Chọn danh mục">
+            <a-select-option v-for="category in categories" :key="category.category_id" :value="category.category_id">
+              {{ category.category_name }}
+            </a-select-option>
+          </a-select>
         </a-form-item>
-        <a-form-item label="Ngôn ngữ" name="language" style="margin-bottom: 10px;">
-          <a-input v-model:value="formData.language" />
-        </a-form-item>
-        <a-form-item label="Hình ảnh" name="image" style="margin-bottom: 10px;">
+        <a-form-item label="Hình ảnh" name="image_url" style="margin-bottom: 10px;">
           <a-upload
             name="file"
             :customRequest="handleCustomRequest"
@@ -76,29 +77,7 @@
               <div style="margin-top: 8px">Upload</div>
             </div>
           </a-upload>
-          <img v-if="formData.image" :src="formData.image" alt="Image" style="width: 100px; margin-top: 8px;" />
-        </a-form-item>
-        <a-form-item label="Danh mục" name="categories_id" style="margin-bottom: 10px;">
-          <a-select v-model:value="formData.categories_id" placeholder="Chọn danh mục">
-            <a-select-option v-for="category in categories" :key="category.id" :value="category.id">
-              {{ category.name }}
-            </a-select-option>
-          </a-select>
-        </a-form-item>
-        <a-form-item label="Mô tả" name="description" style="margin-bottom: 10px;">
-          <a-textarea v-model:value="formData.description" />
-        </a-form-item>
-        <a-form-item label="Giá" name="price" style="margin-bottom: 10px;">
-          <a-input-number v-model:value="formData.price" style="width: 100%;" />
-        </a-form-item>
-        <a-form-item label="Số lượng tồn kho" name="StockQuantity" style="margin-bottom: 10px;">
-          <a-input-number v-model:value="formData.StockQuantity" style="width: 100%;" />
-        </a-form-item>
-        <a-form-item label="Trạng thái" name="Status" style="margin-bottom: 10px;">
-          <a-select v-model:value="formData.Status" placeholder="Chọn trạng thái">
-            <a-select-option value="Còn hàng">Còn hàng</a-select-option>
-            <a-select-option value="Hết hàng">Hết hàng</a-select-option>
-          </a-select>
+          <img v-if="formData.image_url" :src="formData.image_url" alt="Image" style="width: 100px; margin-top: 8px;" />
         </a-form-item>
       </a-form>
     </a-modal>
@@ -106,7 +85,7 @@
 </template>
 
 <script>
-import { getAllBooks, createBook, updateBook, deleteBook, searchBooks } from '@/apis/booksApi';
+import { getAllProducts, createProduct, updateProduct, deleteProduct, searchProducts } from '@/apis/productApi';
 import { getAllCategories } from '@/apis/categoriesApi';
 import { uploadImage } from '@/apis/uploadApi';
 import { message } from 'ant-design-vue';
@@ -121,37 +100,17 @@ export default {
       columns: [
         {
           title: 'Hình ảnh',
-          key: 'image',
+          key: 'image_url',
         },
         {
-          title: 'Tiêu đề',
-          dataIndex: 'title',
-          key: 'title',
+          title: 'Tên sản phẩm',
+          dataIndex: 'product_name',
+          key: 'product_name',
         },
         {
-          title: 'Tác giả',
-          dataIndex: 'author',
-          key: 'author',
-        },
-        {
-          title: 'Nhà xuất bản',
-          dataIndex: 'publisher',
-          key: 'publisher',
-        },
-        {
-          title: 'Năm',
-          dataIndex: 'publicationYear',
-          key: 'publicationYear',
-        },
-        {
-          title: 'Thể loại',
-          dataIndex: 'genre',
-          key: 'genre',
-        },
-        {
-          title: 'Ngôn ngữ',
-          dataIndex: 'language',
-          key: 'language',
+          title: 'Mô tả',
+          dataIndex: 'description',
+          key: 'description',
         },
         {
           title: 'Giá',
@@ -160,13 +119,13 @@ export default {
         },
         {
           title: 'Số lượng tồn kho',
-          dataIndex: 'StockQuantity',
-          key: 'StockQuantity',
+          dataIndex: 'stock',
+          key: 'stock',
         },
         {
-          title: 'Trạng thái',
-          dataIndex: 'Status',
-          key: 'Status',
+          title: 'Danh mục',
+          dataIndex: 'category_name',
+          key: 'category_name',
         },
         {
           title: 'Hành động',
@@ -176,34 +135,22 @@ export default {
       isModalVisible: false,
       formData: {
         id: null,
-        title: '',
-        author: '',
-        publisher: '',
-        publicationYear: 0,
-        genre: '',
-        language: '',
-        image: '',
-        categories_id: null,
+        product_name: '',
         description: '',
         price: 0,
-        StockQuantity: 0,
-        Status: '',
+        stock: 0,
+        category_id: '',
+        image_url: '',
       },
       isEditing: false,
       placeholderImage: 'https://www.svgrepo.com/show/508699/landscape-placeholder.svg', // Optional: Set a placeholder image path
       rules: {
-        title: [{ required: true, message: 'Vui lòng nhập tiêu đề!' }],
-        author: [{ required: true, message: 'Vui lòng nhập tác giả!' }],
-        publisher: [{ required: true, message: 'Vui lòng nhập nhà xuất bản!' }],
-        publicationYear: [{ required: true, message: 'Vui lòng nhập năm xuất bản!' }],
-        genre: [{ required: true, message: 'Vui lòng nhập thể loại!' }],
-        language: [{ required: true, message: 'Vui lòng nhập ngôn ngữ!' }],
-        image: [{ required: true, message: 'Vui lòng tải lên hình ảnh!' }],
-        categories_id: [{ required: true, message: 'Vui lòng chọn danh mục!' }],
+        product_name: [{ required: true, message: 'Vui lòng nhập tên sản phẩm!' }],
         description: [{ required: true, message: 'Vui lòng nhập mô tả!' }],
         price: [{ required: true, message: 'Vui lòng nhập giá!' }],
-        StockQuantity: [{ required: true, message: 'Vui lòng nhập số lượng tồn kho!' }],
-        Status: [{ required: true, message: 'Vui lòng chọn trạng thái!' }],
+        stock: [{ required: true, message: 'Vui lòng nhập số lượng tồn kho!' }],
+        category_id: [{ required: true, message: 'Vui lòng chọn danh mục!' }],
+        image_url: [{ required: true, message: 'Vui lòng tải lên hình ảnh!' }],
       },
     };
   },
@@ -214,8 +161,16 @@ export default {
   methods: {
     async fetchProducts() {
       try {
-        const data = await getAllBooks();
-        this.products = data;
+        const data = await getAllProducts();
+        console.log(data);
+        this.products = data.map(product => {
+          const category = JSON.parse(JSON.stringify(this.categories.find(cat => Number(cat.category_id) === Number(product.category_id))));
+          console.log(category);
+          return {
+            ...product,
+            category_name: category ? category.category_name : 'Không xác định',
+          };
+        });
       } catch (error) {
         message.error(error.message || 'Có lỗi xảy ra khi tải sản phẩm!');
       }
@@ -230,7 +185,7 @@ export default {
     },
     async handleSearch(query) {
       try {
-        const data = await searchBooks(query);
+        const data = await searchProducts(query);
         this.products = data;
       } catch (error) {
         message.error(error.message || 'Có lỗi xảy ra khi tìm kiếm sản phẩm!');
@@ -240,49 +195,41 @@ export default {
       this.isEditing = false;
       this.formData = {
         id: null,
-        title: '',
-        author: '',
-        publisher: '',
-        publicationYear: 0,
-        genre: '',
-        language: '',
-        image: '',
-        categories_id: null,
+        product_name: '',
         description: '',
         price: 0,
-        StockQuantity: 0,
-        Status: '',
+        stock: 0,
+        category_id: '',
+        image_url: '',
       };
       this.isModalVisible = true;
     },
     showEditModal(record) {
       this.isEditing = true;
       this.formData = { ...record };
+      this.fetchCategories().then(() => {
+        const category = this.categories.find(cat => cat.category_id === record.category_id);
+        this.formData.category_id = category ? category.category_id : null;
+      });
       this.isModalVisible = true;
     },
     async handleOk() {
       this.$refs.productForm.validate().then(async () => {
         try {
           const payload = _.pick(this.formData, [
-            'title',
-            'author',
-            'publisher',
-            'publicationYear',
-            'genre',
-            'language',
-            'image',
-            'categories_id',
+            'product_name',
             'description',
             'price',
-            'StockQuantity',
-            'Status',
+            'stock',
+            'category_id',
+            'image_url',
           ]);
 
           if (this.isEditing) {
-            await updateBook(this.formData.id, payload);
+            await updateProduct(this.formData.id, payload);
             message.success('Cập nhật sản phẩm thành công!');
           } else {
-            await createBook(payload);
+            await createProduct(payload);
             message.success('Thêm sản phẩm thành công!');
           }
           this.isModalVisible = false;
@@ -299,7 +246,7 @@ export default {
     },
     async handleDelete(id) {
       try {
-        await deleteBook(id);
+        await deleteProduct(id);
         message.success('Xóa sản phẩm thành công!');
         this.fetchProducts();
       } catch (error) {
@@ -309,7 +256,7 @@ export default {
     async handleCustomRequest({ file, onSuccess, onError }) {
       try {
         const response = await uploadImage(file);
-        this.formData.image = response.data.url;
+        this.formData.image_url = response.data.url;
         onSuccess(response, file);
         message.success(`${file.name} file uploaded successfully`);
       } catch (error) {

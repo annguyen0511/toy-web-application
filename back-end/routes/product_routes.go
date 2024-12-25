@@ -17,7 +17,7 @@ func ProductRoutes(r *gin.Engine, db *models.DB) {
 	api := r.Group("/api/products")
 	{
 		api.POST("/", productHandler.AddProduct)                                // Thêm sản phẩm
-		api.PUT("/", productHandler.UpdateProduct)                              // Sửa sản phẩm
+		api.PUT("/update/:product_id", productHandler.UpdateProduct)            // Sửa sản phẩm
 		api.DELETE("/:product_id", productHandler.DeleteProduct)                // Xóa sản phẩm
 		api.GET("/", productHandler.GetAllProducts)                             // Lấy tất cả sản phẩm
 		api.GET("/:product_id", productHandler.GetProductByID)                  // Lấy sản phẩm theo ID

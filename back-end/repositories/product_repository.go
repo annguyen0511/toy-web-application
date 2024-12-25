@@ -77,9 +77,11 @@ func (r *ProductRepository) GetProductByID(productID int) (models.Product, error
 }
 
 // Tìm kiếm sản phẩm
+
 func (r *ProductRepository) SearchProducts(name string) ([]models.Product, error) {
 	rows, err := r.db.Query("SELECT ProductID, ProductName, Description, Price, Stock, CategoryID, ImageURL, CreatedAt FROM Products WHERE ProductName LIKE ?", "%"+name+"%")
 	if err != nil {
+		println("Error querying products:", err.Error()) // Print error
 		return nil, err
 	}
 	defer rows.Close()
@@ -87,7 +89,16 @@ func (r *ProductRepository) SearchProducts(name string) ([]models.Product, error
 	var products []models.Product
 	for rows.Next() {
 		var product models.Product
-		if err := rows.Scan(&product.ProductID, &product.ProductName, &product.Description, &product.Price, &product.Stock, &product.CategoryID, &product.ImageURL, &product.CreatedAt); err != nil {
+		var createdAt string // Temporary variable to hold the CreatedAt value
+		if err := rows.Scan(&product.ProductID, &product.ProductName, &product.Description, &product.Price, &product.Stock, &product.CategoryID, &product.ImageURL, &createdAt); err != nil {
+			println("Error scanning product:", err.Error()) // Print error
+			return nil, err
+		}
+		// Convert createdAt string to time.Time
+		if parsedTime, err := time.Parse("2006-01-02 15:04:05", createdAt); err == nil {
+			product.CreatedAt = parsedTime
+		} else {
+			println("Error parsing CreatedAt:", err.Error()) // Print error
 			return nil, err
 		}
 		products = append(products, product)

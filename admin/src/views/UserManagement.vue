@@ -17,7 +17,7 @@
       :columns="columns"
       :dataSource="users"
       :pagination="{ pageSize: 10 }"
-      rowKey="id"
+      rowKey="user_id"
     >
       <template #bodyCell="{ column, record }">
         <span v-if="column.key === 'actions'">
@@ -27,7 +27,7 @@
             title="Bạn có chắc chắn muốn xóa người dùng này không?"
             ok-text="Có"
             cancel-text="Không"
-            @confirm="handleDelete(record.id)"
+            @confirm="handleDelete(record.user_id)"
           >
             <a>Xóa</a>
           </a-popconfirm>
@@ -42,28 +42,22 @@
       @cancel="handleCancel"
     >
       <a-form :model="formData" :rules="rules" ref="userForm" layout="vertical">
+        <a-form-item label="Họ và tên" name="full_name" style="margin-bottom: 10px;">
+          <a-input v-model:value="formData.full_name" />
+        </a-form-item>
         <a-form-item label="Email" name="email" style="margin-bottom: 10px;">
           <a-input v-model:value="formData.email" />
         </a-form-item>
-        <a-form-item label="Số điện thoại" name="phone" style="margin-bottom: 10px;">
-          <a-input v-model:value="formData.phone" />
+        <a-form-item label="Số điện thoại" name="phone_number" style="margin-bottom: 10px;">
+          <a-input v-model:value="formData.phone_number" />
         </a-form-item>
-        <a-form-item label="Tên người dùng" name="username" style="margin-bottom: 10px;">
-          <a-input v-model:value="formData.username" />
-        </a-form-item>
-        <a-form-item label="Mật khẩu" name="password" style="margin-bottom: 10px;">
-          <a-input type="password" v-model:value="formData.password" />
+        <a-form-item label="Địa chỉ" name="address" style="margin-bottom: 10px;">
+          <a-input v-model:value="formData.address" />
         </a-form-item>
         <a-form-item label="Vai trò" name="role" style="margin-bottom: 10px;">
           <a-select v-model:value="formData.role" placeholder="Chọn vai trò">
-            <a-select-option value="isClient">Khách hàng</a-select-option>
+            <a-select-option value="User">Người dùng</a-select-option>
             <a-select-option value="isAdmin">Quản trị viên</a-select-option>
-          </a-select>
-        </a-form-item>
-        <a-form-item label="Trạng thái" name="status" style="margin-bottom: 10px;">
-          <a-select v-model:value="formData.status" placeholder="Chọn trạng thái">
-            <a-select-option value="active">Hoạt động</a-select-option>
-            <a-select-option value="inactive">Không hoạt động</a-select-option>
           </a-select>
         </a-form-item>
       </a-form>
@@ -82,29 +76,29 @@ export default {
       users: [],
       columns: [
         {
+          title: 'Họ và tên',
+          dataIndex: 'full_name',
+          key: 'full_name',
+        },
+        {
           title: 'Email',
           dataIndex: 'email',
           key: 'email',
         },
         {
           title: 'Số điện thoại',
-          dataIndex: 'phone',
-          key: 'phone',
+          dataIndex: 'phone_number',
+          key: 'phone_number',
         },
         {
-          title: 'Tên người dùng',
-          dataIndex: 'username',
-          key: 'username',
+          title: 'Địa chỉ',
+          dataIndex: 'address',
+          key: 'address',
         },
         {
           title: 'Vai trò',
           dataIndex: 'role',
           key: 'role',
-        },
-        {
-          title: 'Trạng thái',
-          dataIndex: 'status',
-          key: 'status',
         },
         {
           title: 'Hành động',
@@ -113,22 +107,20 @@ export default {
       ],
       isModalVisible: false,
       formData: {
-        id: null,
+        user_id: null,
+        full_name: '',
         email: '',
-        phone: '',
-        username: '',
-        password: '',
+        phone_number: '',
+        address: '',
         role: '',
-        status: '',
       },
       isEditing: false,
       rules: {
+        full_name: [{ required: true, message: 'Vui lòng nhập họ và tên!' }],
         email: [{ required: true, message: 'Vui lòng nhập email!' }],
-        phone: [{ required: true, message: 'Vui lòng nhập số điện thoại!' }],
-        username: [{ required: true, message: 'Vui lòng nhập tên người dùng!' }],
-        password: [{ required: true, message: 'Vui lòng nhập mật khẩu!' }],
+        phone_number: [{ required: true, message: 'Vui lòng nhập số điện thoại!' }],
+        address: [{ required: true, message: 'Vui lòng nhập địa chỉ!' }],
         role: [{ required: true, message: 'Vui lòng chọn vai trò!' }],
-        status: [{ required: true, message: 'Vui lòng chọn trạng thái!' }],
       },
     };
   },
@@ -155,26 +147,25 @@ export default {
     showCreateModal() {
       this.isEditing = false;
       this.formData = {
-        id: null,
+        user_id: null,
+        full_name: '',
         email: '',
-        phone: '',
-        username: '',
-        password: '',
+        phone_number: '',
+        address: '',
         role: '',
-        status: '',
       };
       this.isModalVisible = true;
     },
     showEditModal(record) {
       this.isEditing = true;
-      this.formData = { ...record, password: '' }; 
+      this.formData = { ...record }; 
       this.isModalVisible = true;
     },
     async handleOk() {
       this.$refs.userForm.validate().then(async () => {
         try {
           if (this.isEditing) {
-            await updateUser(this.formData.id, this.formData);
+            await updateUser(this.formData.user_id, this.formData);
             message.success('Cập nhật người dùng thành công!');
           } else {
             await createUser(this.formData);
@@ -192,9 +183,9 @@ export default {
     handleCancel() {
       this.isModalVisible = false;
     },
-    async handleDelete(id) {
+    async handleDelete(user_id) {
       try {
-        await deleteUser(id);
+        await deleteUser(user_id);
         message.success('Xóa người dùng thành công!');
         this.fetchUsers();
       } catch (error) {

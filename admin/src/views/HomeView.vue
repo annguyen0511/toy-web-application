@@ -42,7 +42,7 @@
 </template>
 
 <script>
-import { getAllBooks } from '@/apis/booksApi';
+import { getAllProducts } from '@/apis/productApi';
 import { getAllUsers } from '@/apis/userApi';
 import { getAllOrders } from '@/apis/ordersApi';
 import { getAllCategories } from '@/apis/categoriesApi';
@@ -63,7 +63,7 @@ export default {
   methods: {
     async fetchCounts() {
       try {
-        const products = await getAllBooks();
+        const products = await getAllProducts();
         this.productCount = products.length;
 
         const users = await getAllUsers();
