@@ -14,13 +14,10 @@ func CategoryRoutes(r *gin.Engine, db *models.DB) {
 	categoryService := services.NewCategoryService(categoryRepo)
 	categoryHandler := handlers.NewCategoryHandler(categoryService)
 
-	api := r.Group("/api/categories")
-	{
-		api.POST("/", categoryHandler.AddCategory)                  // Thêm danh mục
-		api.PUT("/", categoryHandler.UpdateCategory)                // Sửa danh mục
-		api.DELETE("/:category_id", categoryHandler.DeleteCategory) // Xóa danh mục
-		api.GET("/", categoryHandler.GetAllCategories)              // Lấy tất cả danh mục
-		api.GET("/:category_id", categoryHandler.GetCategoryByID)   // Lấy danh mục theo ID
-		api.GET("/search", categoryHandler.SearchCategories)        // Tìm kiếm danh mục
-	}
+	r.POST("/api/categories/", categoryHandler.AddCategory)                      // Thêm danh mục
+	r.PUT("/api/categories/update/:category_id", categoryHandler.UpdateCategory) // Sửa danh mục
+	r.DELETE("/api/categories/:category_id", categoryHandler.DeleteCategory)     // Xóa danh mục
+	r.GET("/api/categories/", categoryHandler.GetAllCategories)                  // Lấy tất cả danh mục
+	r.GET("/api/categories/:category_id", categoryHandler.GetCategoryByID)       // Lấy danh mục theo ID
+	r.GET("/api/categories/search", categoryHandler.SearchCategories)            // Tìm kiếm danh mục
 }

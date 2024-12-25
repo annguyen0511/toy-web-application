@@ -148,10 +148,23 @@ export default {
       this.$refs.categoryForm.validate().then(async () => {
         try {
           if (this.isEditing) {
-            await updateCategory(this.formData.id, { name: this.formData.name, description: this.formData.description, image: this.formData.image });
+            if (!this.formData.id) {
+              message.error('ID danh mục không hợp lệ!');
+              return;
+            }
+            await updateCategory(this.formData.id, { 
+              id: this.formData.id,
+              name: this.formData.name, 
+              description: this.formData.description, 
+              image: this.formData.image 
+            });
             message.success('Cập nhật danh mục thành công!');
           } else {
-            await createCategory({ name: this.formData.name, description: this.formData.description, image: this.formData.image });
+            await createCategory({ 
+              name: this.formData.name, 
+              description: this.formData.description, 
+              image: this.formData.image 
+            });
             message.success('Thêm danh mục thành công!');
           }
           this.isModalVisible = false;

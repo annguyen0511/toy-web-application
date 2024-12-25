@@ -33,13 +33,14 @@ func (h *CategoryHandler) AddCategory(c *gin.Context) {
 
 // Sửa danh mục
 func (h *CategoryHandler) UpdateCategory(c *gin.Context) {
+	println("Đã vào đây") // Log data
 	var category models.Category
 	if err := c.ShouldBindJSON(&category); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
 		return
 	}
 	if err := h.CategoryService.UpdateCategory(category); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Unable to update category"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Unable to update category", "details": err.Error()})
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"message": "Category updated successfully"})

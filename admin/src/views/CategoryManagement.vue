@@ -27,7 +27,7 @@
             title="Bạn có chắc chắn muốn xóa danh mục này không?"
             ok-text="Có"
             cancel-text="Không"
-            @confirm="handleDelete(record.id)"
+            @confirm="handleDelete(record.category_id)"
           >
             <a>Xóa</a>
           </a-popconfirm>
@@ -43,25 +43,11 @@
       @cancel="handleCancel"
     >
       <a-form :model="formData" :rules="rules" ref="categoryForm" layout="vertical">
-        <a-form-item label="Tên danh mục" name="name" style="margin-bottom: 10px;">
-          <a-input v-model:value="formData.name" />
+        <a-form-item label="Tên danh mục" name="category_name" style="margin-bottom: 10px;">
+          <a-input v-model:value="formData.category_name" />
         </a-form-item>
         <a-form-item label="Mô tả" name="description" style="margin-bottom: 10px;">
           <a-input v-model:value="formData.description" />
-        </a-form-item>
-        <a-form-item label="Hình ảnh" name="image" style="margin-bottom: 10px;">
-          <a-upload
-            name="file"
-            :customRequest="handleCustomRequest"
-            list-type="picture-card"
-            :show-upload-list="false"
-          >
-            <div>
-              <a-icon type="plus" />
-              <div style="margin-top: 8px">Upload</div>
-            </div>
-          </a-upload>
-          <img v-if="formData.image" :src="formData.image" alt="Image" style="width: 100px; margin-top: 8px;" />
         </a-form-item>
       </a-form>
     </a-modal>
@@ -80,13 +66,9 @@ export default {
       categories: [],
       columns: [
         {
-          title: 'Hình ảnh',
-          key: 'image',
-        },
-        {
           title: 'Tên',
-          dataIndex: 'name',
-          key: 'name',
+          dataIndex: 'category_name',
+          key: 'category_name',
         },
         {
           title: 'Mô tả',
@@ -100,17 +82,15 @@ export default {
       ],
       isModalVisible: false,
       formData: {
-        id: null,
-        name: '',
+        category_id: null,
+        category_name: '',
         description: '',
-        image: '',
       },
       isEditing: false,
       placeholderImage: 'https://www.svgrepo.com/show/508699/landscape-placeholder.svg', // Optional: Set a placeholder image path
       rules: {
-        name: [{ required: true, message: 'Vui lòng nhập tên danh mục!' }],
+        category_name: [{ required: true, message: 'Vui lòng nhập tên danh mục!' }],
         description: [{ required: true, message: 'Vui lòng nhập mô tả!' }],
-        image: [{ required: true, message: 'Vui lòng tải lên hình ảnh!' }],
       },
     };
   },
@@ -136,22 +116,33 @@ export default {
     },
     showCreateModal() {
       this.isEditing = false;
-      this.formData = { id: null, name: '', description: '', image: '' };
+      this.formData = { category_id: null, category_name: '', description: '' };
       this.isModalVisible = true;
     },
     showEditModal(record) {
       this.isEditing = true;
-      this.formData = { ...record };
+      this.formData = { 
+        category_id: record.category_id,
+        category_name: record.category_name,
+        description: record.description,
+      };
       this.isModalVisible = true;
     },
     async handleOk() {
       this.$refs.categoryForm.validate().then(async () => {
         try {
           if (this.isEditing) {
-            await updateCategory(this.formData.id, { name: this.formData.name, description: this.formData.description, image: this.formData.image });
+            await updateCategory(this.formData.category_id, {
+              category_id: this.formData.category_id,
+              category_name: this.formData.category_name,
+              description: this.formData.description,
+            });
             message.success('Cập nhật danh mục thành công!');
           } else {
-            await createCategory({ name: this.formData.name, description: this.formData.description, image: this.formData.image });
+            await createCategory({
+              category_name: this.formData.category_name,
+              description: this.formData.description,
+            });
             message.success('Thêm danh mục thành công!');
           }
           this.isModalVisible = false;
@@ -166,9 +157,9 @@ export default {
     handleCancel() {
       this.isModalVisible = false;
     },
-    async handleDelete(id) {
+    async handleDelete(category_id) {
       try {
-        await deleteCategory(id);
+        await deleteCategory(category_id);
         message.success('Xóa danh mục thành công!');
         this.fetchCategories();
       } catch (error) {

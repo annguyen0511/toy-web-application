@@ -3,6 +3,7 @@ package repositories
 import (
 	"backend/models"
 	"database/sql"
+	"fmt"
 	"time"
 )
 
@@ -23,9 +24,19 @@ func (r *CategoryRepository) AddCategory(category models.Category) error {
 
 // Sửa danh mục
 func (r *CategoryRepository) UpdateCategory(category models.Category) error {
-	_, err := r.db.Exec("UPDATE Categories SET CategoryName = ?, Description = ? WHERE CategoryID = ?",
+	result, err := r.db.Exec("UPDATE Categories SET CategoryName = ?, Description = ? WHERE CategoryID = ?",
 		category.CategoryName, category.Description, category.CategoryID)
-	return err
+	if err != nil {
+		return err
+	}
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rowsAffected == 0 {
+		return fmt.Errorf("no rows were updated for CategoryID: %d", category.CategoryID)
+	}
+	return nil
 }
 
 // Xóa danh mục
