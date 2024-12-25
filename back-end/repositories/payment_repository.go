@@ -3,6 +3,7 @@ package repositories
 import (
 	"backend/models"
 	"database/sql"
+	"time"
 )
 
 type PaymentRepository struct {
@@ -44,7 +45,15 @@ func (r *PaymentRepository) GetAllPayments() ([]models.Payment, error) {
 	var payments []models.Payment
 	for rows.Next() {
 		var payment models.Payment
-		if err := rows.Scan(&payment.PaymentID, &payment.OrderID, &payment.Amount, &payment.PaymentDate, &payment.Status); err != nil {
+		var paymentDate string // Temporary variable to hold the PaymentDate value
+		if err := rows.Scan(&payment.PaymentID, &payment.OrderID, &payment.Amount, &paymentDate, &payment.Status); err != nil {
+			return nil, err
+		}
+		// Convert paymentDate string to time.Time
+		if parsedTime, err := time.Parse("2006-01-02 15:04:05", paymentDate); err == nil {
+			payment.PaymentDate = parsedTime
+		} else {
+			println("Error parsing PaymentDate:", err.Error()) // Print error
 			return nil, err
 		}
 		payments = append(payments, payment)

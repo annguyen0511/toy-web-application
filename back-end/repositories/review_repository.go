@@ -3,6 +3,7 @@ package repositories
 import (
 	"backend/models"
 	"database/sql"
+	"time"
 )
 
 type ReviewRepository struct {
@@ -44,7 +45,15 @@ func (r *ReviewRepository) GetAllReviews() ([]models.Review, error) {
 	var reviews []models.Review
 	for rows.Next() {
 		var review models.Review
-		if err := rows.Scan(&review.ReviewID, &review.ProductID, &review.UserID, &review.Rating, &review.Comment, &review.CreatedAt); err != nil {
+		var createdAt string // Temporary variable to hold the CreatedAt value
+		if err := rows.Scan(&review.ReviewID, &review.ProductID, &review.UserID, &review.Rating, &review.Comment, &createdAt); err != nil {
+			return nil, err
+		}
+		// Convert createdAt string to time.Time
+		if parsedTime, err := time.Parse("2006-01-02 15:04:05", createdAt); err == nil {
+			review.CreatedAt = parsedTime
+		} else {
+			println("Error parsing CreatedAt:", err.Error()) // Print error
 			return nil, err
 		}
 		reviews = append(reviews, review)

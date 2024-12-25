@@ -3,6 +3,7 @@ package repositories
 import (
 	"backend/models"
 	"database/sql"
+	"time"
 )
 
 type CartRepository struct {
@@ -70,7 +71,15 @@ func (r *CartRepository) GetAllCarts() ([]models.Cart, error) {
 	var carts []models.Cart
 	for rows.Next() {
 		var cart models.Cart
-		if err := rows.Scan(&cart.CartID, &cart.UserID, &cart.CreatedAt); err != nil {
+		var createdAt string // Temporary variable to hold the CreatedAt value
+		if err := rows.Scan(&cart.CartID, &cart.UserID, &createdAt); err != nil {
+			return nil, err
+		}
+		// Convert createdAt string to time.Time
+		if parsedTime, err := time.Parse("2006-01-02 15:04:05", createdAt); err == nil {
+			cart.CreatedAt = parsedTime
+		} else {
+			println("Error parsing CreatedAt:", err.Error()) // Print error
 			return nil, err
 		}
 		carts = append(carts, cart)

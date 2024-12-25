@@ -3,6 +3,7 @@ package repositories
 import (
 	"backend/models"
 	"database/sql"
+	"time"
 )
 
 type OrderRepository struct {
@@ -70,7 +71,15 @@ func (r *OrderRepository) GetAllOrders() ([]models.Order, error) {
 	var orders []models.Order
 	for rows.Next() {
 		var order models.Order
-		if err := rows.Scan(&order.OrderID, &order.UserID, &order.TotalPrice, &order.CreatedAt); err != nil {
+		var createdAt string // Temporary variable to hold the CreatedAt value
+		if err := rows.Scan(&order.OrderID, &order.UserID, &order.TotalPrice, &createdAt); err != nil {
+			return nil, err
+		}
+		// Convert createdAt string to time.Time
+		if parsedTime, err := time.Parse("2006-01-02 15:04:05", createdAt); err == nil {
+			order.CreatedAt = parsedTime
+		} else {
+			println("Error parsing CreatedAt:", err.Error()) // Print error
 			return nil, err
 		}
 		orders = append(orders, order)

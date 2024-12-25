@@ -63,6 +63,8 @@ func (h *CategoryHandler) DeleteCategory(c *gin.Context) {
 func (h *CategoryHandler) GetAllCategories(c *gin.Context) {
 	categories, err := h.CategoryService.GetAllCategories()
 	if err != nil {
+		// Log the specific error
+		println("Error fetching categories:", err.Error())
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Unable to fetch categories"})
 		return
 	}

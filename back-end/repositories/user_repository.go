@@ -3,6 +3,7 @@ package repositories
 import (
 	"backend/models"
 	"database/sql"
+	"time"
 )
 
 type UserRepository struct {
@@ -24,7 +25,15 @@ func (r *UserRepository) GetAllUsers() ([]models.User, error) {
 	var users []models.User
 	for rows.Next() {
 		var user models.User
-		if err := rows.Scan(&user.UserID, &user.FullName, &user.Email, &user.PhoneNumber, &user.Address, &user.Role, &user.CreatedAt); err != nil {
+		var createdAt string // Temporary variable to hold the CreatedAt value
+		if err := rows.Scan(&user.UserID, &user.FullName, &user.Email, &user.PhoneNumber, &user.Address, &user.Role, &createdAt); err != nil {
+			return nil, err
+		}
+		// Convert createdAt string to time.Time
+		if parsedTime, err := time.Parse("2006-01-02 15:04:05", createdAt); err == nil {
+			user.CreatedAt = parsedTime
+		} else {
+			println("Error parsing CreatedAt:", err.Error()) // Print error
 			return nil, err
 		}
 		users = append(users, user)
