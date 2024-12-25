@@ -5,14 +5,17 @@
         <h2>Đăng ký tài khoản</h2>
         <p class="welcome-text">Vui lòng điền thông tin để đăng ký</p>
         <a-form :model="formData" @submit.prevent="handleRegister" layout="vertical">
+          <a-form-item label="Họ và tên" name="fullName" :rules="[ { required: true, message: 'Vui lòng nhập họ và tên!' } ]">
+            <a-input v-model:value="formData.FullName" placeholder="Nhập họ và tên của bạn" />
+          </a-form-item>
           <a-form-item label="Email" name="email" :rules="[ { required: true, message: 'Vui lòng nhập email!' } ]">
             <a-input v-model:value="formData.email" placeholder="Nhập email của bạn" />
           </a-form-item>
-          <a-form-item label="Số điện thoại" name="phone" :rules="[ { required: true, message: 'Vui lòng nhập số điện thoại!' } ]">
-            <a-input v-model:value="formData.phone" placeholder="Nhập số điện thoại của bạn" />
+          <a-form-item label="Số điện thoại" name="PhoneNumber" :rules="[ { required: true, message: 'Vui lòng nhập số điện thoại!' } ]">
+            <a-input v-model:value="formData.PhoneNumber" placeholder="Nhập số điện thoại của bạn" />
           </a-form-item>
-          <a-form-item label="Tên người dùng" name="username" :rules="[ { required: true, message: 'Vui lòng nhập tên người dùng!' } ]">
-            <a-input v-model:value="formData.username" placeholder="Nhập tên người dùng của bạn" />
+          <a-form-item label="Địa chỉ" name="address" :rules="[ { required: true, message: 'Vui lòng nhập địa chỉ!' } ]">
+            <a-input v-model:value="formData.address" placeholder="Nhập địa chỉ của bạn" />
           </a-form-item>
           <a-form-item label="Mật khẩu" name="password" :rules="[ { required: true, message: 'Vui lòng nhập mật khẩu!' } ]">
             <a-input type="password" v-model:value="formData.password" placeholder="Nhập mật khẩu của bạn" />
@@ -34,11 +37,12 @@ export default {
   data() {
     return {
       formData: {
+        FullName: '',
         email: '',
-        phone: '',
-        username: '',
+        PhoneNumber: '',
+        address: '',
         password: '',
-        role: 'isClient', // Default role for new users
+        role: 'isClient',
       },
     };
   },

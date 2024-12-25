@@ -3,6 +3,7 @@ package repositories
 import (
 	"backend/models"
 	"database/sql"
+	"log"
 	"time"
 )
 
@@ -50,9 +51,20 @@ func (r *UserRepository) RegisterUser(user models.User) error {
 
 // Đăng nhập người dùng
 func (r *UserRepository) LoginUser(email, password string) (models.User, error) {
+	log.Printf("Login attempt with Email: %s, Password: %s", email, password)
 	var user models.User
-	err := r.DB.QueryRow("SELECT UserID, FullName, Email, PhoneNumber, Address, Role, CreatedAt FROM Users WHERE Email = ? AND PasswordHash = ?", email, password).Scan(&user.UserID, &user.FullName, &user.Email, &user.PhoneNumber, &user.Address, &user.Role, &user.CreatedAt)
-	return user, err
+	var createdAt []byte // Use []byte to handle the database value
+	err := r.DB.QueryRow("SELECT UserID, FullName, Email, PhoneNumber, Address, Role, CreatedAt FROM Users WHERE Email = ? AND PasswordHash = ?", email, password).Scan(&user.UserID, &user.FullName, &user.Email, &user.PhoneNumber, &user.Address, &user.Role, &createdAt)
+	if err != nil {
+		return user, err
+	}
+	// Convert createdAt []byte to time.Time
+	user.CreatedAt, err = time.Parse("2006-01-02 15:04:05", string(createdAt))
+	if err != nil {
+		log.Printf("Error parsing CreatedAt: %s", err.Error())
+		return user, err
+	}
+	return user, nil
 }
 
 // Thay đổi mật khẩu

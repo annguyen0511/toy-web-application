@@ -10,7 +10,6 @@
        
         <p class="book-price"><strong>Giá:</strong> {{ formatPrice(product.price) }} đ</p>
         <button class="add-to-cart" @click="addToCart">Thêm vào giỏ hàng</button>
-        <button class="add-to-wishlist" @click="addToWishlist">Thêm vào danh sách yêu thích</button>
       </div>
     </div>
     <div class="book-description-section">
@@ -22,9 +21,9 @@
       <div class="related-products-list">
         <div
           v-for="relatedProduct in relatedProducts"
-          :key="relatedProduct.id"
+          :key="relatedProduct.category_id"
           class="related-book-card"
-          @click="viewProductDetails(relatedProduct.id)"
+          @click="viewProductDetails(relatedProduct.category_id)"
         >
           <img :src="relatedProduct.image_url" alt="Product cover" class="related-book-image" />
           <h4>{{ relatedProduct.product_name }}</h4>
@@ -67,7 +66,7 @@ export default {
     },
     addToCart() {
       let cart = JSON.parse(localStorage.getItem('cart')) || [];
-      const existingItem = cart.find(item => item.id === this.product.id);
+      const existingItem = cart.find(item => item.category_id === this.product.category_id);
       if (existingItem) {
         existingItem.quantity += 1;
       } else {

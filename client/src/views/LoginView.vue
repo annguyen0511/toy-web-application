@@ -2,7 +2,7 @@
   <div class="auth-container">
     <div class="auth-background">
       <a-card class="auth-card">
-        <h2>Chào mừng bạn đến với BookStore</h2>
+        <h2>Chào mừng bạn đến với JoyfulToys</h2>
         <p class="welcome-text">Vui lòng đăng nhập để tiếp tục</p>
         <a-form :model="formData" @submit.prevent="handleLogin" layout="vertical">
           <a-form-item label="Email" name="email" :rules="[ { required: true, message: 'Vui lòng nhập email!' } ]">
@@ -37,9 +37,9 @@ export default {
     async handleLogin() {
       try {
         const response = await loginUser(this.formData);
-        if (response.success) {
-          localStorage.setItem('user', JSON.stringify(response.data.user));
-          localStorage.setItem('token', JSON.stringify(response.data.token));
+        if (response.user) {
+          localStorage.setItem('user', JSON.stringify(response.user));
+          localStorage.setItem('token', JSON.stringify(response.token));
           this.$router.push('/');
           message.success('Đăng nhập thành công!');
         } else {

@@ -11,10 +11,10 @@ const axiosInstance = axios.create({
 // Thêm interceptor để xử lý request
 axiosInstance.interceptors.request.use(
   (config) => {
-    // Thêm token vào header nếu cần
     const token = localStorage.getItem('token');
     if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+      // Loại bỏ dấu nháy kép nếu có
+      config.headers.Authorization = `Bearer ${token.replace(/"/g, '')}`;
     }
     return config;
   },

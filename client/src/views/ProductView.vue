@@ -1,12 +1,12 @@
 <template>
   <div class="books-view-container">
     <div class="search-filters">
-      <input v-model="searchQuery" placeholder="Tìm kiếm theo tên hoặc tác giả" @input="searchBooks" class="search-input" />
+      <input v-model="searchQuery" placeholder="Tìm kiếm theo tên" @input="searchBooks" class="search-input" />
       <div class="select-container">
         <select v-model="selectedCategory" @change="filterBooks" class="custom-select">
           <option value="">Tất cả danh mục</option>
-          <option v-for="category in categories" :key="category.id" :value="category.id">
-            {{ category.name }}
+          <option v-for="category in categories" :key="category.category_id" :value="category.category_id">
+            {{ category.category_name }}
           </option>
         </select>
       </div>
@@ -28,11 +28,10 @@
       </div>
     </div>
     <div class="books-list">
-      <div v-for="book in paginatedBooks" :key="book.id" class="book-card" @click="viewBookDetails(book.id)">
-        <img :src="book.image || 'https://via.placeholder.com/150'" alt="Bìa sách" class="book-image" />
+      <div v-for="book in paginatedBooks" :key="book.categories_id" class="book-card" @click="viewBookDetails(book.product_id)">
+        <img :src="book.image_url || 'https://via.placeholder.com/150'" alt="Bìa sách" class="book-image" />
         <div class="book-info">
-          <h3 class="book-title">{{ book.title }}</h3>
-          <p class="book-author">bởi {{ book.author }}</p>
+          <h3 class="book-title">{{ book.product_name }}</h3>
           <p class="book-price">{{ formatPrice(book.price) }} đ</p>
         </div>
       </div>
@@ -45,7 +44,7 @@
 </template>
 
 <script>
-import { getAllBooks } from '@/apis/productsApi';
+import { getAllProducts } from '@/apis/productsApi';
 import { getAllCategories } from '@/apis/categoriesApi';
 
 export default {
@@ -65,11 +64,10 @@ export default {
   computed: {
     filteredBooks() {
       return this.books.filter(book => {
-        const matchesSearchQuery = book.title.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
-                                   book.author.toLowerCase().includes(this.searchQuery.toLowerCase());
-        const matchesCategory = this.selectedCategory ? book.categories_id === this.selectedCategory : true;
+        const matchesSearchQuery = book.product_name.toLowerCase().includes(this.searchQuery.toLowerCase());
+        const matchesCategory = this.selectedCategory ? book.category_id === this.selectedCategory : true;
         const matchesPriceRange = this.selectedPriceRange ? this.checkPriceRange(book.price) : true;
-        const matchesInitial = this.selectedInitial ? book.title.startsWith(this.selectedInitial) : true;
+        const matchesInitial = this.selectedInitial ? book.product_name.startsWith(this.selectedInitial) : true;
 
         return matchesSearchQuery && matchesCategory && matchesPriceRange && matchesInitial;
       });
@@ -85,7 +83,7 @@ export default {
   },
   methods: {
     async fetchBooks() {
-      this.books = await getAllBooks();
+      this.books = await getAllProducts ();
       this.categories = await getAllCategories();
     },
     searchBooks() {
@@ -95,7 +93,7 @@ export default {
       this.currentPage = 1;
     },
     viewBookDetails(bookId) {
-      this.$router.push(`/book/${bookId}`);
+      this.$router.push(`/product/${bookId}`);
     },
     nextPage() {
       if (this.currentPage < this.totalPages) {

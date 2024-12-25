@@ -3,6 +3,7 @@ package handlers
 import (
 	"backend/models"
 	"backend/services"
+	"log"
 	"net/http"
 	"strconv"
 
@@ -52,6 +53,7 @@ func (h *UserHandler) LoginUser(c *gin.Context) {
 	}
 	user, token, err := h.UserService.LoginUser(loginData.Email, loginData.Password)
 	if err != nil {
+		log.Printf("Login failed for email: %s, error: %v", loginData.Email, err)
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})
 		return
 	}

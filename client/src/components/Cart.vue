@@ -4,8 +4,8 @@
     <div v-if="cart.length === 0" class="empty-cart">Giỏ hàng của bạn đang trống.</div>
     <div v-else>
       <div class="cart-items">
-        <div v-for="item in cart" :key="item.id" class="cart-item">
-          <img :src="item.image" alt="Book cover" class="cart-item-image" />
+        <div v-for="item in cart" :key="item.product_id" class="cart-item">
+          <img :src="item.image_url" alt="Book cover" class="cart-item-image" />
           <div class="cart-item-info">
             <h3>{{ item.title }}</h3>
             <p>Giá: <span class="price">{{ formatPrice(item.price) }} đ</span></p>
@@ -15,7 +15,7 @@
               <button @click="updateQuantity(item, 1)">+</button>
             </div>
             <p>Thành tiền: <span class="price">{{ formatPrice(item.price * item.quantity) }} đ</span></p>
-            <button @click="removeFromCart(item.id)" class="remove-button">Xóa</button>
+            <button @click="removeFromCart(item.product_id)" class="remove-button">Xóa</button>
           </div>
         </div>
       </div>
@@ -62,7 +62,7 @@ export default {
       this.saveCart();
     },
     removeFromCart(id) {
-      this.cart = this.cart.filter(item => item.id !== id);
+      this.cart = this.cart.filter(item => item.product_id !== id);
       this.saveCart();
     },
     saveCart() {
